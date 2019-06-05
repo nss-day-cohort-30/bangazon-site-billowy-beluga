@@ -30,8 +30,21 @@ namespace Bangazon.Controllers
         [Authorize]
         // Only Users logged in can view a profile
         // GET: Profile
-        public ActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            var user = await GetCurrentUserAsync();
+            var userProducts = _context.Product.Include(p => p.ProductRatings).Where(p => p.UserId == user.Id).ToList();
+
+            int? productRatingTotal = 0;
+            double productTotal = 0;
+
+            foreach (Product product in userProducts)
+            {
+                productTotal += product.ProductRatings.Count;
+                productRatingTotal += product.ProductRatings.Sum(pr => pr.Rating);
+            }
+
+            ViewBag.ReviewAverage = productRatingTotal / productTotal;
             return View();
         }
 
